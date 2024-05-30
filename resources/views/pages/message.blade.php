@@ -177,7 +177,8 @@
                     </div>
                     <div class="card-body">
                         <div class="dt-responsive">
-                            <table id="table_message" class="table table-striped table-bordered nowrap">
+                            <table id="table_message" class="table table-striped table-bordered nowrap"
+                                style="width: 100%">
                                 <thead>
                                     <tr>
                                         <th>No</th>
