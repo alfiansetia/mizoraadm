@@ -69,6 +69,17 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
+                                        <label for="input_user">Select User<span class="text-red">*</span></label>
+                                        <select name="user" id="input_user" class="form-control select2">
+                                            <option value="" selected>ALL USER</option>
+                                            @foreach ($users as $item)
+                                                <option value="{{ $item->id }}">{{ $item->customer_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        <div id="error_category" class="invalid-feedback" style="display:none">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
                                         <label for="input_title">Title<span class="text-red">*</span></label>
                                         <input id="input_title" type="text" class="form-control" name="title"
                                             value="" placeholder="Enter message title" required="">
@@ -170,6 +181,7 @@
                                 <thead>
                                     <tr>
                                         <th>No</th>
+                                        <th>User</th>
                                         <th>Category</th>
                                         <th>Title</th>
                                         <th>Image</th>
@@ -469,6 +481,10 @@
                 columns: [{
                     data: "no",
                     name: "no"
+                }, {
+                    data: "user_id",
+                    name: "User",
+                    defautContent: 'ALL'
                 }, {
                     data: "category",
                     name: "category"

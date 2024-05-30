@@ -8,6 +8,7 @@ use App\Models\Message;
 use DateTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
@@ -24,6 +25,9 @@ class MessageController extends Controller
                 ->addIndexColumn()
                 ->addColumn('no', function () use (&$counter) {
                     return $counter++;
+                })
+                ->addColumn('user_id', function ($row) {
+                    return $row->user_id ?? 'ALL';
                 })
                 ->addColumn('category', function ($row) {
                     return $row->category->name;
@@ -53,7 +57,8 @@ class MessageController extends Controller
                 ->rawColumns(['image', 'description', 'url', 'action'])
                 ->make(true);
         }
-        return view('pages.message');
+        $users = DB::table('customers')->get();
+        return view('pages.message', compact('users'));
     }
 
     public function getOption()
