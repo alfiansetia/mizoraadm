@@ -27,7 +27,7 @@ class MessageController extends Controller
                     return $counter++;
                 })
                 ->addColumn('user_id', function ($row) {
-                    return $row->user_id ?? 'ALL';
+                    return $row->user->customer_name ?? 'ALL';
                 })
                 ->addColumn('category', function ($row) {
                     return $row->category->name;

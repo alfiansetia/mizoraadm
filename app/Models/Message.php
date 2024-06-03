@@ -29,4 +29,9 @@ class Message extends Model
         }
         return 'https://assets.mizora.jewelry/appmob/default.jpg';
     }
+
+    public function user()
+    {
+        return $this->belongsTo(Customer::class, 'user_id');
+    }
 }
