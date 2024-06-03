@@ -21,4 +21,12 @@ class Message extends Model
     {
         return $this->belongsTo(CategoryMessage::class, 'category_message_id', 'id');
     }
+
+    public function getImageAttribute($value)
+    {
+        if ($value && file_exists(public_path('images/message/' . $value))) {
+            return asset('images/message/' . $value);
+        }
+        return 'https://assets.mizora.jewelry/appmob/default.jpg';
+    }
 }

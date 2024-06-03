@@ -281,6 +281,9 @@
                                 } else if (key == "description") {
                                     $('#input_' + key).summernote('code', value);
                                     $('#input_' + key).summernote('enable');
+                                } else if (key == "user") {
+                                    $('#input_' + key).val(value).trigger('change');
+                                    $('#input_' + key).prop('disabled', false);
                                 } else {
                                     $('#input_' + key).val(value);
                                     $('#input_' + key).prop('readonly', false);
@@ -294,6 +297,9 @@
                                 } else if (key == "description") {
                                     $('#input_' + key).summernote('code', value);
                                     $('#input_' + key).summernote('disable');
+                                } else if (key == "user") {
+                                    $('#input_' + key).val(value).trigger('change');
+                                    $('#input_' + key).prop('disabled', true);
                                 } else {
                                     $('#input_' + key).val(value);
                                     $('#input_' + key).prop('readonly', true);
@@ -426,7 +432,7 @@
             restate();
 
             function restate() {
-                var arrInput = ['category', 'title', 'image', 'description', 'url', 'label', 'datetime'];
+                var arrInput = ['category', 'user', 'title', 'image', 'description', 'url', 'label', 'datetime'];
                 $.each(arrInput, function(key, value) {
                     if (value == 'category') {
                         $('#input_' + value).removeClass('is-invalid').prop('disabled', false);
@@ -434,6 +440,9 @@
                     } else if (value == 'description') {
                         $('#input_' + value).summernote('enable');
                         $('#input_' + value).summernote('code', '');
+                        $('#error_' + value).hide();
+                    } else if (value == 'user') {
+                        $('#input_' + value).removeClass('is-invalid').prop('disabled', false);
                         $('#error_' + value).hide();
                     } else {
                         $('#input_' + value).removeClass('is-invalid').prop('readonly', false);

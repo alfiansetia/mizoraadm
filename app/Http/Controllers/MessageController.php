@@ -88,6 +88,7 @@ class MessageController extends Controller
             'url' => 'required|string',
             'label' => 'required|string',
             'datetime' => 'required',
+            'user'  => 'nullable|exists:customers:id'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -144,6 +145,7 @@ class MessageController extends Controller
             'url_cta' => $request->url,
             'label_cta' => $request->label,
             'datetime' => $cnvDateTime,
+            'user_id'   => $request->user,
         ]);
 
         return response()->json([
@@ -160,6 +162,7 @@ class MessageController extends Controller
             $thisData = Message::with(['category'])->where('id', $request->value)->first();
 
             $array['category'] = $thisData->category->name;
+            $array['user'] = $thisData->user_id;
             $array['title'] = $thisData->title;
             $array['description'] = $thisData->description;
             $array['url'] = $thisData->url_cta;
@@ -178,6 +181,7 @@ class MessageController extends Controller
                 'url' => 'required|string',
                 'label' => 'required|string',
                 'datetime' => 'required',
+                'user'  => 'nullable|exists:customers:id'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -244,6 +248,7 @@ class MessageController extends Controller
                 'url_cta' => $request->url,
                 'label_cta' => $request->label,
                 'datetime' => $cnvDateTime,
+                'user_id'   => $request->user,
             ]);
 
             return response()->json([
@@ -260,6 +265,7 @@ class MessageController extends Controller
             $thisData = Message::with(['category'])->where('id', $request->value)->first();
 
             $array['category'] = $thisData->category->name;
+            $array['user'] = $thisData->user_id;
             $array['title'] = $thisData->title;
             $array['description'] = $thisData->description;
             $array['url'] = $thisData->url_cta;
@@ -272,10 +278,11 @@ class MessageController extends Controller
             ], 200);
         } else if ($parameter == "confirm") {
             $checkImage = Message::where('id', $request->value)->first();
-            $imageDB = public_path($checkImage->image);
-
-            if ($imageDB) {
-                unlink($imageDB);
+            $imageDB = $checkImage->getRawOriginal('image');
+            if ($checkImage) {
+                if ($imageDB && file_exists(public_path($imageDB))) {
+                    unlink($imageDB);
+                }
                 $checkImage->delete();
             }
 
