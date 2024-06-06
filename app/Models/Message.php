@@ -24,10 +24,15 @@ class Message extends Model
 
     public function getImageAttribute($value)
     {
-        if ($value && file_exists(public_path('images/message/' . $value))) {
-            return asset('images/message/' . $value);
+        $base_url = 'https://assets.mizora.jewelry/appmob/';
+        $path = 'message/';
+        $public_path = '/var/www/mizoraadm/public/images/';
+        $default_img = 'default.jpg';
+        if (!empty($value) && file_exists($public_path . $path . $value)) {
+            return $base_url . $path . $value;
+        } else {
+            return $base_url . $default_img;
         }
-        return 'https://assets.mizora.jewelry/appmob/default.jpg';
     }
 
     public function user()

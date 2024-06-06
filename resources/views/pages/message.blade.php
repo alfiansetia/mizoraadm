@@ -99,7 +99,7 @@
 
                                     <div class="form-group">
                                         <label>Description</label>
-                                        <textarea id="input_description" name="description" class="form-control html-editor h-205" rows="10"></textarea>
+                                        <textarea id="input_description" name="description" class="form-control html-editor2 h-205" rows="10"></textarea>
                                         <div id="error_description" class="invalid-feedback" style="display:none">
                                         </div>
                                     </div>
@@ -212,6 +212,26 @@
 
 
     <script>
+        $(document).ready(function() {
+            $('.html-editor2').summernote({
+                height: 300,
+                tabsize: 2,
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript',
+                        'subscript', 'clear'
+                    ]],
+                    ['fontname', ['fontname']],
+                    ['fontsize', ['fontsize']],
+                    ['color', ['color']],
+                    ['para', ['ol', 'ul', 'paragraph', 'height']],
+                    ['table', ['table']],
+                    ['insert', ['link']],
+                    ['view', ['undo', 'redo', 'fullscreen', 'codeview', 'help']]
+                ]
+            });
+
+        })
         $.ajaxSetup({
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -235,7 +255,7 @@
                 }
 
                 $.each($('#input_image')[0].files, function(i, file) {
-                    combinedFormData.append('image[]', file);
+                    combinedFormData.append('image', file);
                 });
 
                 data = combinedFormData;

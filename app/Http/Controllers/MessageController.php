@@ -9,17 +9,24 @@ use DateTime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Validator;
 use Yajra\DataTables\DataTables;
 
 class MessageController extends Controller
 {
+
+    public function __construct()
+    {
+        date_default_timezone_set('Asia/Jakarta');
+    }
+
     public function index(Request $request)
     {
         if ($request->ajax()) {
             $counter = 1;
-            $group = Message::with(['category'])->orderBy('id', 'desc')->get();
+            $group = Message::with(['category', 'user'])->orderBy('id', 'desc')->get();
 
             return DataTables::of($group)
                 ->addIndexColumn()
@@ -33,7 +40,7 @@ class MessageController extends Controller
                     return $row->category->name;
                 })
                 ->addColumn('image', function ($row) {
-                    return "<img src='" . asset($row->image) . "' width='100' height='100' /> ";
+                    return "<img src='" . $row->image . "' width='100' height='100' /> ";
                 })
                 ->addColumn('description', function ($row) {
                     return '<div class="line-clamp-2 nowrap" style="width: 300px;">' . $row->description . '</div>';
@@ -82,13 +89,14 @@ class MessageController extends Controller
         //required|date|date_format:Y-m-d\TH:i
 
         $rules = [
-            'category' => 'required|string',
-            'title' => 'required|string',
-            'description' => 'required|string',
-            'url' => 'required|string',
-            'label' => 'required|string',
-            'datetime' => 'required',
-            'user'  => 'nullable|exists:customers:id'
+            'image'         => 'nullable|image|mimes:jpg,jpeg,png|max:3072',
+            'category'      => 'required|string',
+            'title'         => 'required|string|max:220',
+            'description'   => 'required|string',
+            'url'           => 'required|string',
+            'label'         => 'required|string',
+            'datetime'      => 'required',
+            'user'          => 'nullable|exists:customers,id'
         ];
 
         $validator = Validator::make($request->all(), $rules);
@@ -105,47 +113,25 @@ class MessageController extends Controller
         $categoryID = CategoryMessage::where('name', $category)->first();
         $thisID = $categoryID->id;
 
-        $files = $request->file('image');
-
-        if ($files) {
-            foreach ($files as $file) {
-                if ($file && $file->isValid()) {
-                    $mime = $file->getClientMimeType();
-
-                    $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png'];
-
-                    if (in_array($mime, $allowedMimes)) {
-                        $thisFilename = str_replace(" ", "_", $file->getClientOriginalName());
-                        $fileName = time() . '_' . $thisFilename;
-
-                        $publicDirectory = public_path('img/notifications/' . strtolower($category));
-
-                        $file->move($publicDirectory, $fileName);
-
-                        $filePath = 'img/notifications/' . strtolower($category) . '/' . $fileName;
-                    } else {
-                        $errorArray = [
-                            "Invalid file format. Only JPG/JPEG and PNG images are allowed."
-                        ];
-                        $errorResponse = [
-                            "image" => $errorArray
-                        ];
-
-                        return response()->json(['errors' => $errorResponse], 422);
-                    }
-                }
+        $img = null;
+        if ($files = $request->file('image')) {
+            $destinationPath = '/var/www/mizoraadm/public/images/message/';
+            if (!file_exists($destinationPath)) {
+                File::makeDirectory($destinationPath, 755, true);
             }
+            $img = 'image_notif_' . date('YmdHis') . "." . $files->getClientOriginalExtension();
+            $files->move($destinationPath, $img);
         }
 
         Message::create([
-            'category_message_id' => $thisID,
-            'title' => $request->title,
-            'image' => $filePath,
-            'description' => $request->description,
-            'url_cta' => $request->url,
-            'label_cta' => $request->label,
-            'datetime' => $cnvDateTime,
-            'user_id'   => $request->user,
+            'category_message_id'   => $thisID,
+            'title'                 => $request->title,
+            'image'                 => $img,
+            'description'           => $request->description,
+            'url_cta'               => $request->url,
+            'label_cta'             => $request->label,
+            'datetime'              => $cnvDateTime,
+            'user_id'               => $request->user,
         ]);
 
         return response()->json([
@@ -156,7 +142,6 @@ class MessageController extends Controller
 
     public function edit(Request $request)
     {
-
         $parameter = $request->parameter;
         if ($parameter == "get") {
             $thisData = Message::with(['category'])->where('id', $request->value)->first();
@@ -175,13 +160,14 @@ class MessageController extends Controller
             ], 200);
         } else if ($parameter == "save") {
             $rules = [
-                'category' => 'required|string',
-                'title' => 'required|string',
-                'description' => 'required|string',
-                'url' => 'required|string',
-                'label' => 'required|string',
-                'datetime' => 'required',
-                'user'  => 'nullable|exists:customers:id'
+                'image'         => 'nullable|image|mimes:jpg,jpeg,png|max:3072',
+                'category'      => 'required|string',
+                'title'         => 'required|string',
+                'description'   => 'required|string',
+                'url'           => 'required|string',
+                'label'         => 'required|string',
+                'datetime'      => 'required',
+                'user'          => 'nullable|exists:customers,id'
             ];
 
             $validator = Validator::make($request->all(), $rules);
@@ -197,58 +183,34 @@ class MessageController extends Controller
 
             $categoryID = CategoryMessage::where('name', $category)->first();
             $thisID = $categoryID->id;
-
-            $files = $request->file('image');
-
-            if ($files) {
-                foreach ($files as $file) {
-                    if ($file && $file->isValid()) {
-                        $mime = $file->getClientMimeType();
-
-                        $allowedMimes = ['image/jpeg', 'image/jpg', 'image/png'];
-
-                        if (in_array($mime, $allowedMimes)) {
-                            $thisFilename = str_replace(" ", "_", $file->getClientOriginalName());
-                            $fileName = time() . '_' . $thisFilename;
-
-                            $publicDirectory = public_path('img/notifications/' . strtolower($category));
-
-                            $checkImage = Message::where('id', $request->value)->first();
-                            $imageDB = public_path($checkImage->image);
-
-                            if ($imageDB) {
-                                unlink($imageDB);
-                            }
-
-                            $file->move($publicDirectory, $fileName);
-
-                            $filePath = 'img/notifications/' . strtolower($category) . '/' . $fileName;
-
-                            Message::where('id', $request->value)->update([
-                                'image' => $filePath
-                            ]);
-                        } else {
-                            $errorArray = [
-                                "Invalid file format. Only JPG/JPEG and PNG images are allowed."
-                            ];
-                            $errorResponse = [
-                                "image" => $errorArray
-                            ];
-
-                            return response()->json(['errors' => $errorResponse], 422);
-                        }
-                    }
-                }
+            $message = Message::find($request->value);
+            if (!$message) {
+                return response()->json([
+                    'message' => 'Data Not Found!',
+                ], 404);
             }
 
-            $thisData = Message::where('id', $request->value)->update([
-                'category_message_id' => $thisID,
-                'title' => $request->title,
-                'description' => $request->description,
-                'url_cta' => $request->url,
-                'label_cta' => $request->label,
-                'datetime' => $cnvDateTime,
-                'user_id'   => $request->user,
+            $img = $message->getRawOriginal('image');
+            if ($files = $request->file('image')) {
+                $destinationPath = '/var/www/mizoraadm/public/images/message/';
+                if (!empty($img) && file_exists($destinationPath . $img)) {
+                    File::delete($destinationPath . $img);
+                }
+                if (!file_exists($destinationPath)) {
+                    File::makeDirectory($destinationPath, 755, true);
+                }
+                $img = 'image_notif_' . date('YmdHis') . "." . $files->getClientOriginalExtension();
+                $files->move($destinationPath, $img);
+            }
+            $thisData = $message->update([
+                'category_message_id'   => $thisID,
+                'title'                 => $request->title,
+                'description'           => $request->description,
+                'url_cta'               => $request->url,
+                'label_cta'             => $request->label,
+                'datetime'              => $cnvDateTime,
+                'user_id'               => $request->user,
+                'image'                 => $img,
             ]);
 
             return response()->json([
@@ -280,8 +242,9 @@ class MessageController extends Controller
             $checkImage = Message::where('id', $request->value)->first();
             $imageDB = $checkImage->getRawOriginal('image');
             if ($checkImage) {
-                if ($imageDB && file_exists(public_path($imageDB))) {
-                    unlink($imageDB);
+                if ($imageDB && file_exists('/var/www/mizoraadm/public/images/message/' . $imageDB)) {
+                    File::delete('/var/www/mizoraadm/public/images/message/' . $imageDB);
+                    // unlink($imageDB);
                 }
                 $checkImage->delete();
             }
